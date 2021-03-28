@@ -32,6 +32,11 @@ After setup you should bashrc so the changes can take place
 source ~/.bashrc
 ```
 
+To install ROS packages dependencies (run from workspace root directory):
+```
+rosdep install --from-paths src --ignore-src -r -y
+```
+
 ## Build
 Enter workspace root directory ('wzium')
 ```
