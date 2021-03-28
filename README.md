@@ -44,6 +44,8 @@ catkin_make
 source devel/setup.bash
 ```
 
+Building packages can get lousy. You can add flag --pkg to catkin_make to specify packages that are to be built, e.g. ```catkin_make --pkg wzium```. This can save a lot of time.
+
 ## Usage
 You can run nodes directly (you have to run ```roscore``` first in some console window), then run node e.g.:
 ```

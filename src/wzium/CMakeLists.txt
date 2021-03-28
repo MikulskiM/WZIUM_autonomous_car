@@ -11,11 +11,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(OpenCV 3)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -120,7 +122,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   /usr/local/lib/
 )
-
+include_directories(${OpenCV_INCLUDE_DIRS})
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/wzium.cpp
@@ -136,6 +138,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(example_cpp_node src/example_cpp_node.cpp)
 
+add_executable(roadsign_detector src/roadsign_detector.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -145,9 +148,11 @@ add_executable(example_cpp_node src/example_cpp_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(roadsign_detector ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(example_cpp_node ${catkin_LIBRARIES})
+
+target_link_libraries(roadsign_detector ${catkin_LIBRARIES})
 
 #############
 ## Install ##
