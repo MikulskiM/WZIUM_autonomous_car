@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.4.2">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -183,20 +183,6 @@
 <dimension x1="14.8" y1="75.775" x2="14.7" y2="29.975" x3="2" y3="52.875" textsize="1.016" layer="1" dtype="vertical" width="0.05"/>
 </plain>
 <libraries>
-<library name="WingTechCorner">
-<packages>
-<package name="M3-HOLE">
-<hole x="0" y="0" drill="3.2"/>
-<circle x="0" y="0" radius="3" width="0" layer="29"/>
-<circle x="0" y="0" radius="3" width="0" layer="30"/>
-<circle x="0" y="0" radius="3" width="0" layer="39"/>
-<circle x="0" y="0" radius="3" width="0" layer="40"/>
-<circle x="0" y="0" radius="3" width="0" layer="41"/>
-<circle x="0" y="0" radius="3" width="0" layer="42"/>
-<circle x="0" y="0" radius="3" width="0" layer="43"/>
-</package>
-</packages>
-</library>
 <library name="SparkFun-Connectors" urn="urn:adsk.eagle:library:513">
 <description>&lt;h3&gt;SparkFun Connectors&lt;/h3&gt;
 This library contains electrically-functional connectors. 
@@ -599,6 +585,20 @@ by exp-lbrs-replace2.ulp</description>
 </package3d>
 </packages3d>
 </library>
+<library name="_MOUNTING_HOLES">
+<packages>
+<package name="M3-HOLE">
+<hole x="0" y="0" drill="3.2"/>
+<circle x="0" y="0" radius="3" width="0" layer="29"/>
+<circle x="0" y="0" radius="3" width="0" layer="30"/>
+<circle x="0" y="0" radius="3" width="0" layer="39"/>
+<circle x="0" y="0" radius="3" width="0" layer="40"/>
+<circle x="0" y="0" radius="3" width="0" layer="41"/>
+<circle x="0" y="0" radius="3" width="0" layer="42"/>
+<circle x="0" y="0" radius="3" width="0" layer="43"/>
+</package>
+</packages>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -792,10 +792,6 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="U$1" library="WingTechCorner" package="M3-HOLE" value="" x="14.675" y="28.375" smashed="yes"/>
-<element name="U$2" library="WingTechCorner" package="M3-HOLE" value="" x="14.675" y="77.375" smashed="yes"/>
-<element name="U$3" library="WingTechCorner" package="M3-HOLE" value="" x="72.675" y="77.375" smashed="yes"/>
-<element name="U$4" library="WingTechCorner" package="M3-HOLE" value="" x="72.675" y="28.375" smashed="yes"/>
 <element name="J1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" package="2X20_SHROUDED" package3d_urn="urn:adsk.eagle:package:38279/1" value="RASPBERRYPI-40-PIN-GPIO_PTH" x="44" y="43" smashed="yes" rot="R270">
 <attribute name="NAME" x="73.464" y="47.445" size="0.6096" layer="25" font="vector" ratio="20" rot="R270"/>
 <attribute name="PROD_ID" value="CONN-12263" x="44" y="43" size="1.778" layer="27" rot="R270" display="off"/>
@@ -826,6 +822,10 @@ design rules under a new name.</description>
 <attribute name="NAME" x="97.3162" y="21.1712" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="97.24" y="26.175" size="1.27" layer="27" rot="R180"/>
 </element>
+<element name="U$5" library="_MOUNTING_HOLES" package="M3-HOLE" value="" x="14.675" y="28.375" smashed="yes"/>
+<element name="U$1" library="_MOUNTING_HOLES" package="M3-HOLE" value="" x="72.675" y="28.375" smashed="yes"/>
+<element name="U$4" library="_MOUNTING_HOLES" package="M3-HOLE" value="" x="72.675" y="77.375" smashed="yes"/>
+<element name="U$3" library="_MOUNTING_HOLES" package="M3-HOLE" value="" x="14.675" y="77.375" smashed="yes"/>
 </elements>
 <signals>
 <signal name="3.3V">
