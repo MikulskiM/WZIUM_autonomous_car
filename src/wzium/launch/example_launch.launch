@@ -1,3 +1,0 @@
-<launch>
-  <node name="example_node" pkg="wzium" type="example_cpp_node" output="screen"/>
-</launch>
