@@ -130,3 +130,5 @@ dmypy.json
 build/*
 devel/*
 .vscode/*
+*.jpg
+*.mp4

@@ -1,0 +1,10 @@
+<launch>
+  <arg name="movie" default="$(find roadsign_detector)/test/vid/test.mp4"/>
+  <arg name="topic" default="/camera/image"/>
+
+  <node type="movie_publisher_node" pkg="movie_publisher" name="movie_publisher" output="screen">
+    <param name="movie_file" value="$(arg movie)"/>
+    <remap from="/movie" to="$(arg topic)"/>
+  </node>
+
+</launch>
