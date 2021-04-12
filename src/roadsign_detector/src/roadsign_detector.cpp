@@ -44,7 +44,7 @@ public:
     cv_bridge::CvImagePtr cv_ptr;
     try
     {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGB8);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -57,6 +57,7 @@ public:
       cv::circle(cv_ptr->image, cv::Point(50, 50), 10, CV_RGB(255,0,0));
 
     // Output modified video stream
+    // cv_ptr->encoding = sensor_msgs::image_encodings::RGB8;
     if(debug)
       debug_pub.publish(cv_ptr->toImageMsg());
   }
