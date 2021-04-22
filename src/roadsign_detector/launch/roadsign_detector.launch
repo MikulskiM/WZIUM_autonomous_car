@@ -1,0 +1,41 @@
+<launch>
+
+  <arg name="debug" default="true"/>
+  <arg name="min_area" default="$5000"/>
+  <arg name="max_area" default="$60000"/>
+  <arg name="aspect_ratio_error" default="0.10"/>
+  <arg name="sign_size" default="60"/>
+
+  <group ns="rs_detector/" >
+
+    <node type="roadsign_detector" pkg="roadsign_detector" name="rs_detector" output="screen">
+      <param name="debug" value="$(arg debug)"/>
+      <param name="min_area" value="$(arg min_area)"/>
+      <param name="max_area" value="$(arg max_area)"/>
+      <param name="aspect_ratio_error" value="$(arg aspect_ratio_error)"/>
+      <param name="sign_size" value="$(arg sign_size)"/>
+
+      <!-- <remap from="camera/image" to ="camera/image_raw"/> -->
+    </node>
+
+    <!-- disable not used plugins -->
+    <rosparam if="$(arg debug)" param="debug_blue/disable_pub_plugins">
+      - 'image_transport/compressedDepth'
+      - 'image_transport/theora'
+    </rosparam>
+    <rosparam if="$(arg debug)" param="debug_red/disable_pub_plugins">
+      - 'image_transport/compressedDepth'
+      - 'image_transport/theora'
+    </rosparam>
+    <rosparam param="sign_blue/disable_pub_plugins">
+      - 'image_transport/compressedDepth'
+      - 'image_transport/theora'
+    </rosparam>
+    <rosparam param="sign_red/disable_pub_plugins">
+      - 'image_transport/compressedDepth'
+      - 'image_transport/theora'
+    </rosparam>
+    
+  </group>
+
+</launch>

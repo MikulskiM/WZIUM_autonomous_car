@@ -37,10 +37,10 @@ public:
   {
     // subscribe and publish topics
     sub = it.subscribe("/camera/image", 20, &RSDetector::processImg, this);
-    debugRed = it.advertise("rs_detector/debug_red", 10, false);
-    debugBlue = it.advertise("rs_detector/debug_blue", 10, false);
-    signRed = it.advertise("rs_detector/sign_red", 10, true);
-    signBlue = it.advertise("rs_detector/sign_blue", 10, true);
+    debugRed = it.advertise("debug_red", 10, false);
+    debugBlue = it.advertise("debug_blue", 10, false);
+    signRed = it.advertise("sign_red", 10, true);
+    signBlue = it.advertise("sign_blue", 10, true);
 
     // load launch parameters
     node.param<bool>("debug", debug, true);
