@@ -39,8 +39,8 @@ public:
     sub = it.subscribe("/camera/image", 20, &RSDetector::processImg, this);
     debugRed = it.advertise("rs_detector/debug_red", 10, false);
     debugBlue = it.advertise("rs_detector/debug_blue", 10, false);
-    signRed = it.advertise("rs_detector/detected_signs/red", 10, true);
-    signBlue = it.advertise("rs_detector/detected_signs/blue", 10, true);
+    signRed = it.advertise("rs_detector/sign_red", 10, true);
+    signBlue = it.advertise("rs_detector/sign_blue", 10, true);
 
     // load launch parameters
     node.param<bool>("debug", debug, true);
@@ -72,9 +72,9 @@ public:
     // crop image's right top corner to restrain excessive processing
     cv::Mat croppedImage = cv::Mat(imgOriginal, cv::Rect(cols / 2, 0, cols / 2, rows / 2));
 
-
-    processRed(croppedImage);
-    // processBlue(imgOriginal);
+    // TODO thredding
+    processRed(croppedImage.clone());
+    processBlue(croppedImage.clone());
   }
 
   /**
@@ -263,7 +263,7 @@ public:
   }
 
   /**
-   * Detect red signs and publish them on rs_detector/detected_signs/red topic
+   * Detect red signs and publish them.
    *
    * Detect signs based on color segmentation and contours' properties. Signs will be scaled
    * accordingly to given sign_size node's parameter.
@@ -286,9 +286,11 @@ public:
     cv::Mat imgBGR;
     cv::cvtColor(imgYUV, imgBGR, CV_YUV2BGR);
 
-    // convert bgr to hsv
+    // TODO enhance equalization so it's usable
+
+    // convert orginal to hsv
     cv::Mat imgHSV;
-    cv::cvtColor(imgBGR, imgHSV, CV_BGR2HSV);
+    cv::cvtColor(imgOriginal, imgHSV, CV_RGB2HSV);
 
     // mask red
     cv::Mat maskLow;
@@ -303,8 +305,8 @@ public:
     cv::medianBlur(redMask, blurred, 5);
 
     // erode mask 3x3
-    // cv::erode(redMask, redMask, cv::getStructuringElement(cv::MORPH_ERODE,
-    //                     cv::Size(3, 3), cv::Point(1, 1)));
+    cv::erode(redMask, redMask, cv::getStructuringElement(cv::MORPH_ERODE,
+                        cv::Size(3, 3), cv::Point(1, 1)));
 
     // dilate mask 5x5
     // cv::dilate(redMask, redMask, cv::getStructuringElement( cv::MORPH_OPEN,
@@ -336,26 +338,8 @@ public:
     // filter contours to get rects of potential signs
     auto rects = filterContours(contours);
 
-    if(debug)
-    {
-      // draw debug image
-      for( size_t i = 0; i< contours.size(); i++ )
-      {
-        cv::drawContours(imgOriginal, contours, (int)i, cv::Scalar(0, 255, 0), 1/*cv::FILLED*/, cv::LINE_8, hierarchy, 0 );
-      }
-      for( size_t i = 0; i< rects.size(); i++ )
-      {
-        rectangle(imgOriginal, rects[i].tl(), rects[i].br(), cv::Scalar(255, 0, 255), 2 );
-      }
-
-      // Output modified video stream
-      auto msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", imgOriginal).toImageMsg();
-  
-      debugRed.publish(msg);
-    }
-
     // crop and return signs
-    auto signs = cropRects(imgBGR, rects);
+    auto signs = cropRects(imgOriginal, rects);
 
     // scale and output detected signs
     for(auto sign : signs)
@@ -367,8 +351,34 @@ public:
       signRed.publish(msg);
     }
 
+    if(debug)
+    {
+      // draw debug image
+      for( size_t i = 0; i < contours.size(); i++ )
+      {
+        cv::drawContours(imgOriginal, contours, (int)i, cv::Scalar(0, 255, 0), 1/*cv::FILLED*/, cv::LINE_8, hierarchy, 0 );
+      }
+      for( size_t i = 0; i < rects.size(); i++ )
+      {
+        rectangle(imgOriginal, rects[i].tl(), rects[i].br(), cv::Scalar(255, 0, 255), 2 );
+      }
+
+      // Output modified video stream
+      auto msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", imgOriginal).toImageMsg();
+  
+      debugRed.publish(msg);
+    }
+
   }
 
+  /**
+   * Detect blue signs and publish them.
+   *
+   * Detect signs based on color segmentation and contours' properties. Signs will be scaled
+   * accordingly to given sign_size node's parameter.
+   *
+   * @param imgOriginal RGB image from which signs will be extracted. 
+   */
   void processBlue(const cv::Mat imgOriginal)
   {
     // convert image to yuv
@@ -385,44 +395,84 @@ public:
     cv::Mat imgBGR;
     cv::cvtColor(imgYUV, imgBGR, CV_YUV2BGR);
 
-    // convert bgr to hsv
+    // TODO enhance equalization so it's usable
+
+    // convert orginal to hsv
     cv::Mat imgHSV;
     cv::cvtColor(imgOriginal, imgHSV, CV_RGB2HSV);
 
     // mask blue
-    cv::Mat mask;
-    cv::inRange(imgHSV, cv::Scalar(94, 127, 20), cv::Scalar(126, 255, 200), mask);
     cv::Mat blueMask;
-    cv::bitwise_and(imgBGR, imgBGR, blueMask, mask);
+    cv::inRange(imgHSV, cv::Scalar(94, 127, 20), cv::Scalar(126, 255, 200), blueMask);
     
-    // median filter
-    cv::medianBlur(blueMask, blueMask, 5);
-    std::vector<cv::Mat> blueMaskChannels;
-    cv::split(blueMask, blueMaskChannels);
-    // create blue gray space
-    cv::Mat filteredB = -0.5 * blueMaskChannels[2] * blueMaskChannels[0] - 2 * blueMaskChannels[1];
+        // blur mask 5x5
+    cv::Mat blurred;
+    cv::medianBlur(blueMask, blurred, 5);
 
-    // // apply mser to detect regions of interest
-    // auto mser_blue = cv::MSER::create(8, 400, 4000);
-    // std::vector<std::vector<cv::Point>> regions;
-    // std::vector<cv::Rect> mser_bbox;
-    // mser_blue->detectRegions(filteredB, regions, mser_bbox);
+    // erode mask 3x3
+    cv::erode(blueMask, blueMask, cv::getStructuringElement(cv::MORPH_ERODE,
+                        cv::Size(3, 3), cv::Point(1, 1)));
+
+    // dilate mask 5x5
+    // cv::dilate(blueMask, blueMask, cv::getStructuringElement( cv::MORPH_OPEN,
+    //                     cv::Size(5, 5), cv::Point(2, 2));
+
+    // open mask 5x5
+    // cv::morphologyEx(blueMask, blueMask, cv::MORPH_OPEN, cv::getStructuringElement( cv::MORPH_OPEN,
+    //                     cv::Size(5, 5), cv::Point(2, 2));
+
+    // detect contours
+    cv::Mat canny_output;
+    cv::Canny(blueMask, canny_output, 250, 255); // thershold doesn't matter cos mask is binary
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    // find only external contours (only supreme parents to prevent having another contour inside)
+    cv::findContours(canny_output, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     
-    // std::vector<std::vector<cv::Point>> hulls(regions.size());
-    // for(auto i = 0; i < regions.size(); i++)
-    // {
-    //   cv::convexHull(regions[i], hulls[i]);
-    // }
-    // cv::Mat blank = cv::Mat::zeros(cv::Size(blueMask.cols, blueMask.rows),CV_8UC1);
-    // cv::fillPoly(blank, hulls, cv::Scalar(255, 0, 0));
+    // get the moments
+    // std::vector<cv::Moments> mu(contours.size() );
+    // for( int i = 0; i < contours.size(); i++ )
+    //   { mu[i] = moments( contours[i], false ); }
 
+    //  get the mass centers - can be useful for tracking
+    // std::vector<cv::Point2f> mc( contours.size() );
+    // for( int i = 0; i < contours.size(); i++ )
+    //   { mc[i] = cv::Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 ); }
+      
+      
+    // filter contours to get rects of potential signs
+    auto rects = filterContours(contours);
 
-    // Output modified video stream
-    // cvPtr->encoding = sensor_msgs::image_encodings::RGB8;
-    // cv_bridge::CvImagePtr cvPtr;
-    // cvPtr->image = blueMask;
-    // if(debug)
-    //   debugBlue.publish(cvPtr->toImageMsg());
+    // crop and return signs
+    auto signs = cropRects(imgOriginal, rects);
+
+    // scale and output detected signs
+    for(auto sign : signs)
+    {
+      cv::Mat resizedSign(cv::Size(signSize,signSize), CV_8UC3);
+      cv::resize(sign, resizedSign, resizedSign.size());  
+      auto msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", resizedSign).toImageMsg();
+
+      signBlue.publish(msg);
+    }
+
+    if(debug)
+    {
+      // draw debug image
+      for( size_t i = 0; i < contours.size(); i++ )
+      {
+        cv::drawContours(imgOriginal, contours, (int)i, cv::Scalar(0, 255, 0), 1/*cv::FILLED*/, cv::LINE_8, hierarchy, 0 );
+      }
+      for( size_t i = 0; i < rects.size(); i++ )
+      {
+        rectangle(imgOriginal, rects[i].tl(), rects[i].br(), cv::Scalar(255, 0, 255), 2 );
+      }
+
+      // Output modified video stream
+      auto msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", imgOriginal).toImageMsg();
+  
+      debugBlue.publish(msg);
+    }
   }
 };
 
